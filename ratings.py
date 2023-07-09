@@ -10,60 +10,6 @@ from itertools import combinations
 
 import datetime
 
-from google.colab import auth
-auth.authenticate_user()
-
-import gspread
-from google.auth import default
-creds, _ = default()
-
-gc = gspread.authorize(creds)
-
-# Google sheets stuff, will be trashed soon
-
-gsheet = gc.open_by_key('116bG8yMtG5liQPmwt4EXSCPtZmIfRTITdnTbWNPnqZ0')
-
-# Sheet names
-player_data_sheet_name = "Player data"
-variant_data_sheet_name = "Variant data"
-player_game_data_sheet_name = "Player game data"
-metadata_sheet_name = "meta"
-
-
-# Define constants
-
-player_base_rating = 1400
-variant_base_rating = {
-    "No Variant": 1000,
-    "Rainbow": 1100,
-    "Prism": 1100,
-    "White": 1100,
-    "Muddy Rainbow": 1200,
-    "Pink": 1200,
-    "Brown": 1200,
-    "Light Pink": 1300,
-    "Omni": 1300,
-    "Null": 1400,
-    "Clue Starved": 1600
-}
-
-min_player_count = 3
-max_player_count = 5
-
-min_suits = 5
-max_suits = 6
-
-# Proportion of mathematically impossible-to-win seeds – likely to be variant specific eventually
-u_v = 0.02
-
-difficulty_modifier_5p = 0.1
-
-starting_game_id = 700000
-ending_game_id = 1000000
-
-
-
-
 def fetch_player_data():
     # Get data from Google Sheets
     # player_data_raw = gsheet.worksheet(player_data_sheet_name).get_all_values()
@@ -81,16 +27,19 @@ def fetch_player_data():
     return player_data
 
 # Fetch metadata from Google Sheets
-def fetch_metadata():
+def fetch_constants():
     # Get data from Google Sheets
-    metadata_raw = gsheet.worksheet(metadata_sheet_name).get_all_values()
+    # metadata_raw = gsheet.worksheet(metadata_sheet_name).get_all_values()
 
-    metadata = pd.DataFrame(metadata_raw[1:], columns=metadata_raw[0])
+    # metadata = pd.DataFrame(metadata_raw[1:], columns=metadata_raw[0])
 
-    for column in ['latest_game_id', 'total_games_played']:
-        metadata[column] = metadata[column].replace('', '0').astype(int)
+    # for column in ['latest_game_id', 'total_games_played']:
+    #     metadata[column] = metadata[column].replace('', '0').astype(int)
+    
+    with open('data/constants.json', 'r') as file:
+        constants = json.load(file)
 
-    return metadata
+    return constants
 
 def fetch_player_game_data():
     # Get data from Google Sheets
@@ -197,7 +146,7 @@ def build_variant_list():
     variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
 
     variants['number_of_suits'] = variants['variant_name'].apply(get_number_of_suits)
-    variants = variants[variants['number_of_suits'].between(min_suits, max_suits)]
+    variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
     variants['variants'] = variants['variant_name'].apply(find_variants)
 
     return variants
@@ -207,7 +156,7 @@ def fetch_game_data():
     global player_data, variants
     # Fetch game data
     def fetch_data(player):
-        url = f'https://hanab.live/api/v1/history-full/{player}?start={starting_game_id}&end={ending_game_id}'
+        url = f'https://hanab.live/api/v1/history-full/{player}?start={constants["starting_game_id"]}&end={constants["ending_game_id"]}'
         response = requests.get(url)
         return response.json()
 
@@ -250,12 +199,12 @@ def fetch_game_data():
     game_data = pd.DataFrame(rows)
 
     # Just new games
-    game_data = game_data[game_data['game_id'] > metadata['latest_game_id'].values[0]]
-    game_data = game_data[game_data['game_id'] >= starting_game_id]
-    game_data = game_data[game_data['game_id'] <= ending_game_id]
+    game_data = game_data[game_data['game_id'] > constants['latest_game_id'].values[0]]
+    game_data = game_data[game_data['game_id'] >= constants['starting_game_id']]
+    game_data = game_data[game_data['game_id'] <= constants['ending_game_id']]
 
     if not game_data.empty:
-        game_data = game_data[game_data['number_of_players'].between(min_player_count, max_player_count)]
+        game_data = game_data[game_data['number_of_players'].between(constants['min_player_count'], constants['max_player_count'])]
         game_data = game_data[game_data['player_names'].apply(lambda x: set(x).issubset(players))]
 
         game_data = pd.merge(game_data, variants, on='variant_name')
@@ -284,7 +233,7 @@ def calculate_league_development_coefficient(number_of_games_variant, variant_ra
 
 # Calculate player/variant ratings
 def calculate_ratings():
-    global variant_data, player_data, player_game_data, metadata
+    global variant_data, player_data, player_game_data, constants
     game_ids = game_data['game_id'].unique()
     game_ids.sort()
 
@@ -302,7 +251,7 @@ def calculate_ratings():
         difficulty_modifiers = [1]
 
         if current_game['number_of_players'].values[0] == 5:
-            difficulty_modifiers[0] += difficulty_modifier_5p
+            difficulty_modifiers[0] += constants['difficulty_modifier_5p']
 
         variant_names = current_game['variants'].values[0]
         variant_ratings = [variant_data.loc[variant_data['variant_name'] == name, 'variant_rating'].values[0] for name in variant_names]
@@ -323,7 +272,7 @@ def calculate_ratings():
         current_game = current_game.merge(player_data, on='player_name')
         current_game = current_game.merge(variant_data, on='variant_name')
 
-        current_game['player_expected_results'] = (1-u_v) / (1 + 10 ** ((difficulty_modifiers[0] * variant_rating_calculated - current_game['player_rating']) / 400))
+        current_game['player_expected_results'] = (1-constants['u_v']) / (1 + 10 ** ((difficulty_modifiers[0] * variant_rating_calculated - current_game['player_rating']) / 400))
 
         team_expected_results = current_game['player_expected_results'].mean()
 
@@ -361,10 +310,10 @@ def calculate_ratings():
         current_rating_info.drop(columns='player_rating', inplace=True)
         current_rating_info = current_rating_info.rename(columns={'new_player_rating': 'player_rating'})
         player_game_data = pd.concat([player_game_data, current_rating_info], ignore_index=True)
-        metadata['total_games_played'] += 1
+        constants['total_games_played'] += 1
 
-    metadata['latest_game_id'] = game_id
-    metadata['latest_run'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    constants['latest_game_id'] = game_id
+    constants['latest_run'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     player_game_data = player_game_data.sort_values(['player_name', 'game_id'])
     player_game_data['player_game_number'] = player_game_data.groupby('player_name').cumcount() + 1
@@ -399,7 +348,7 @@ def update_google_sheets():
 
 def main():
     player_data = fetch_player_data()
-    metadata = fetch_metadata()
+    constants = fetch_constants()
     player_game_data = fetch_player_game_data()
     variant_data = fetch_variant_data()
     variants = build_variant_list()
