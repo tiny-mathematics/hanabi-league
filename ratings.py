@@ -64,18 +64,19 @@ ending_game_id = 1000000
 
 
 
-# Fetch player data from Google Sheets
 def fetch_player_data():
     # Get data from Google Sheets
-    player_data_raw = gsheet.worksheet(player_data_sheet_name).get_all_values()
+    # player_data_raw = gsheet.worksheet(player_data_sheet_name).get_all_values()
 
-    player_data = pd.DataFrame(player_data_raw[1:], columns=player_data_raw[0])
+    # player_data = pd.DataFrame(player_data_raw[1:], columns=player_data_raw[0])
 
-    for column in ['top_streak', 'current_streak', 'number_of_games', 'number_of_max_scores']:
-        player_data[column] = player_data[column].replace('', '0').astype(int)
+    # for column in ['top_streak', 'current_streak', 'number_of_games', 'number_of_max_scores']:
+    #     player_data[column] = player_data[column].replace('', '0').astype(int)
 
-    for column in ['player_rating']:
-        player_data[column] = player_data[column].replace('', str(player_base_rating)).astype(float)
+    # for column in ['player_rating']:
+    #     player_data[column] = player_data[column].replace('', str(player_base_rating)).astype(float)
+
+    player_data = pd.read_csv('data/player_data.csv')
 
     return player_data
 
@@ -91,31 +92,33 @@ def fetch_metadata():
 
     return metadata
 
-# Fetch player game data from Google Sheets
 def fetch_player_game_data():
     # Get data from Google Sheets
-    player_game_data_raw = gsheet.worksheet(player_game_data_sheet_name).get_all_values()
+    # player_game_data_raw = gsheet.worksheet(player_game_data_sheet_name).get_all_values()
 
-    player_game_data = pd.DataFrame(player_game_data_raw[1:], columns=player_game_data_raw[0])
+    # player_game_data = pd.DataFrame(player_game_data_raw[1:], columns=player_game_data_raw[0])
 
-    for column in ['number_of_suits', 'number_of_players', 'score', 'max_score', 'player_game_number']:
-        player_game_data[column] = player_game_data[column].replace('', '0').astype(int)
+    # for column in ['number_of_suits', 'number_of_players', 'score', 'max_score', 'player_game_number']:
+    #     player_game_data[column] = player_game_data[column].replace('', '0').astype(int)
 
-    for column in ['player_rating', 'change_in_player_rating', 'avg_team_rating']:
-        player_game_data[column] = player_game_data[column].replace('', str(player_base_rating)).astype(float)
+    # for column in ['player_rating', 'change_in_player_rating', 'avg_team_rating']:
+    #     player_game_data[column] = player_game_data[column].replace('', str(player_base_rating)).astype(float)
+
+    player_game_data = pd.read_csv('data/player_game_data.csv')
 
     return player_game_data
 
-# Fetch variant data from Google Sheets
 def fetch_variant_data():
     # Get data from Google Sheets
-    variant_data_raw = gsheet.worksheet(variant_data_sheet_name).get_all_values()
+    # variant_data_raw = gsheet.worksheet(variant_data_sheet_name).get_all_values()
 
-    variant_data = pd.DataFrame(variant_data_raw[1:], columns=variant_data_raw[0])
+    # variant_data = pd.DataFrame(variant_data_raw[1:], columns=variant_data_raw[0])
 
-    variant_data['variant_rating'] = variant_data['variant_rating'].replace('', '0').astype(float)
-    variant_data['number_of_games_variant'] = variant_data['number_of_games_variant'].replace('', '0').astype(int)
-    variant_data['number_of_max_scores_variant'] = variant_data['number_of_max_scores_variant'].replace('', '0').astype(int)
+    # variant_data['variant_rating'] = variant_data['variant_rating'].replace('', '0').astype(float)
+    # variant_data['number_of_games_variant'] = variant_data['number_of_games_variant'].replace('', '0').astype(int)
+    # variant_data['number_of_max_scores_variant'] = variant_data['number_of_max_scores_variant'].replace('', '0').astype(int)
+
+    player_game_data = pd.read_csv('data/player_game_data.csv')
 
     return variant_data
 
