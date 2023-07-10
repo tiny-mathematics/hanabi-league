@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 
-import DataManager
+from DataManager import DataManager
 
 def main():
     data_manager = DataManager()
