@@ -23,8 +23,8 @@ jobs:
       run: python reset_data.py
     - name: Commit and push if changed
       run: |
-        git config --global user.name 'Your Name'
-        git config --global user.email 'your-email@users.noreply.github.com'
+        git config --global user.name 'tiny-mathematics'
+        git config --global user.email 'shoshin.piper@users.noreply.github.com'
         git add -A
         git diff --quiet && git diff --staged --quiet || (echo 'Committing changes...' && git commit -m 'Update data' && git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git HEAD:main)
 
