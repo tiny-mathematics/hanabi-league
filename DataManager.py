@@ -37,83 +37,83 @@ class DataManager:
 
     # Define function for determining number of suits in a given variant
     def get_number_of_suits(self, variant_name):
-      # Special cases
-      if variant_name == 'No Variant':
-          return 5
-      elif variant_name in ['Ambiguous & Dual-Color', 'Ambiguous Mix', 'Dual-Color Mix']:
-          return 6
-    
-      # General case
-      for num in range(3, 7):
-          if f'{num} Suits' in variant_name:
-              return num
-    
-      # If no number of suits was found
-      raise ValueError(f'Cannot determine number of suits for variant "{variant_name}"')
+        # Special cases
+        if variant_name == 'No Variant':
+            return 5
+        elif variant_name in ['Ambiguous & Dual-Color', 'Ambiguous Mix', 'Dual-Color Mix']:
+            return 6
+        
+        # General case
+        for num in range(3, 7):
+            if f'{num} Suits' in variant_name:
+                return num
+        
+        # If no number of suits was found
+        raise ValueError(f'Cannot determine number of suits for variant "{variant_name}"')
     
     # Define function for determining which suits are in a given variant
     def find_variants(self, variant_name):
-      suits = sorted(variant_data['variant_name'].unique(), key=len, reverse=True)
-    
-      variant_suits = []
-    
-      # Check for each suit if it is in the variant name
-      for suit in suits:
-          # If the suit is in the variant name, add it to the list and remove it from the variant name
-          if suit in variant_name:
-              variant_suits.append(suit)
-              variant_name = variant_name.replace(suit, "")
-    
-      if not variant_suits:
-          variant_suits.append('No Variant')
-    
-      return variant_suits
+        suits = sorted(variant_data['variant_name'].unique(), key=len, reverse=True)
+        
+        variant_suits = []
+        
+        # Check for each suit if it is in the variant name
+        for suit in suits:
+            # If the suit is in the variant name, add it to the list and remove it from the variant name
+            if suit in variant_name:
+                variant_suits.append(suit)
+                variant_name = variant_name.replace(suit, "")
+        
+        if not variant_suits:
+            variant_suits.append('No Variant')
+        
+        return variant_suits
     
     def build_variant_list(self):
-      variants_raw = requests.get('https://hanab.live/api/v1/variants').json()
+        variants_raw = requests.get('https://hanab.live/api/v1/variants').json()
     
-      # Variants with any of these words in the name will be excluded for the league
-      filter_terms = [
-          'ambiguous',
-          'mix',
-          'evens',
-          'dark',
-          'cocoa',
-          'fives',
-          'ones',
-          'black',
-          'gray',
-          'matryoshka',
-          'dual',
-          'critical',
-          'blind',
-          'mute',
-          'alternating',
-          'duck',
-          'cow',
-          'synesthesia',
-          'reversed',
-          'down',
-          'throw',
-          'funnels',
-          'chimneys'
-      ]
+        # Variants with any of these words in the name will be excluded for the league
+        filter_terms = [
+            'ambiguous',
+            'mix',
+            'evens',
+            'dark',
+            'cocoa',
+            'fives',
+            'ones',
+            'black',
+            'gray',
+            'matryoshka',
+            'dual',
+            'critical',
+            'blind',
+            'mute',
+            'alternating',
+            'duck',
+            'cow',
+            'synesthesia',
+            'reversed',
+            'down',
+            'throw',
+            'funnels',
+            'chimneys'
+        ]
     
-      variants_raw = list(variants_raw.items())
-    
-      variants = pd.DataFrame(variants_raw, columns=['variant_id', 'variant_name'])
-      variants['variant_id'] = variants['variant_id'].astype(int)
-      variants = variants.drop('variant_id', axis=1)
-    
-      # Filter out the rows with specific terms in 'variant_name'
-      pattern = '|'.join(filter_terms)
-      variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
-    
-      variants['number_of_suits'] = variants['variant_name'].apply(get_number_of_suits)
-      variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
-      variants['variants'] = variants['variant_name'].apply(find_variants)
-    
-      return variants
+        variants_raw = list(variants_raw.items())
+        
+        variants = pd.DataFrame(variants_raw, columns=['variant_id', 'variant_name'])
+        variants['variant_id'] = variants['variant_id'].astype(int)
+        variants = variants.drop('variant_id', axis=1)
+        
+        # Filter out the rows with specific terms in 'variant_name'
+        pattern = '|'.join(filter_terms)
+        variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
+        
+        variants['number_of_suits'] = variants['variant_name'].apply(get_number_of_suits)
+        variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
+        variants['variants'] = variants['variant_name'].apply(find_variants)
+        
+        return variants
     
     #  Fetch game data from hanab.live
     def fetch_game_data(self):
