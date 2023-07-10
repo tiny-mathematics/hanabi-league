@@ -62,7 +62,7 @@ def reset_data():
     constants['latest_game_id'] = constants['starting_game_id'] - 1
     constants['total_games_played'] = 0
     constants['latest_run'] = None
-    with open('data/constants.json, 'w') as file:
+    with open('data/constants.json', 'w') as file:
         json.dump(constants, file)
 
 
