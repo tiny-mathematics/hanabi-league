@@ -162,7 +162,7 @@ class DataManager:
         game_data = pd.DataFrame(rows)
     
         # Just new games
-        game_data = game_data[game_data['game_id'] > self.constants['latest_game_id'].values[0]]
+        game_data = game_data[game_data['game_id'] > self.constants['latest_game_id']]
         game_data = game_data[game_data['game_id'] >= self.constants['starting_game_id']]
         game_data = game_data[game_data['game_id'] <= self.constants['ending_game_id']]
     
