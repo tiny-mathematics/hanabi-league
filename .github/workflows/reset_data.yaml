@@ -1,4 +1,4 @@
-name: Update Data
+name: Reset data
 
 on:
   workflow_dispatch
