@@ -12,31 +12,31 @@ import datetime
 
 class DataManager:
     def __init__(self):
-        self.constants = self.fetch_constants()
-        self.player_data = self.fetch_player_data()
-        self.player_game_data = self.fetch_player_game_data()
-        self.variant_data = self.fetch_variant_data()
-        self.variants = self.build_variant_list()
+        self.constants = self._fetch_constants()
+        self.player_data = self._fetch_player_data()
+        self.player_game_data = self._fetch_player_game_data()
+        self.variant_data = self._fetch_variant_data()
+        self.variants = self._build_variant_list()
         
-    def fetch_constants(self):
+    def _fetch_constants(self):
         with open('data/constants.json', 'r') as file:
             constants = json.load(file)
         return constants
 
-    def fetch_player_data(self):
+    def _fetch_player_data(self):
         player_data = pd.read_csv('data/player_data.csv')
         return player_data
 
-    def fetch_player_game_data(self):
+    def _fetch_player_game_data(self):
         player_game_data = pd.read_csv('data/player_game_data.csv')
         return player_game_data
 
-    def fetch_variant_data(self):
+    def _fetch_variant_data(self):
         variant_data = pd.read_csv('data/variant_data.csv')
         return variant_data
 
     # Define function for determining number of suits in a given variant
-    def get_number_of_suits(self, variant_name):
+    def _get_number_of_suits(self, variant_name):
         # Special cases
         if variant_name == 'No Variant':
             return 5
@@ -52,8 +52,8 @@ class DataManager:
         raise ValueError(f'Cannot determine number of suits for variant "{variant_name}"')
     
     # Define function for determining which suits are in a given variant
-    def find_variants(self, variant_name):
-        suits = sorted(variant_data['variant_name'].unique(), key=len, reverse=True)
+    def _find_variants(self, variant_name):
+        suits = sorted(self.variant_data['variant_name'].unique(), key=len, reverse=True)
         
         variant_suits = []
         
@@ -69,7 +69,7 @@ class DataManager:
         
         return variant_suits
     
-    def build_variant_list(self):
+    def _build_variant_list(self):
         variants_raw = requests.get('https://hanab.live/api/v1/variants').json()
     
         # Variants with any of these words in the name will be excluded for the league
@@ -109,17 +109,17 @@ class DataManager:
         pattern = '|'.join(filter_terms)
         variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
         
-        variants['number_of_suits'] = variants['variant_name'].apply(self.get_number_of_suits)
-        variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
+        variants['number_of_suits'] = variants['variant_name'].apply(self._get_number_of_suits)
+        variants = variants[variants['number_of_suits'].between(self.constants['min_suits'], self.constants['max_suits'])]
         variants['variants'] = variants['variant_name'].apply(find_variants)
         
         return variants
     
     #  Fetch game data from hanab.live
-    def fetch_game_data(self):
+    def _fetch_game_data(self):
         # Fetch game data
         def fetch_data(player):
-            url = f'https://hanab.live/api/v1/history-full/{player}?start={constants["starting_game_id"]}&end={constants["ending_game_id"]}'
+            url = f'https://hanab.live/api/v1/history-full/{player}?start={self.constants["starting_game_id"]}&end={self.constants["ending_game_id"]}'
             response = requests.get(url)
             return response.json()
     
@@ -162,12 +162,12 @@ class DataManager:
         game_data = pd.DataFrame(rows)
     
         # Just new games
-        game_data = game_data[game_data['game_id'] > constants['latest_game_id'].values[0]]
-        game_data = game_data[game_data['game_id'] >= constants['starting_game_id']]
-        game_data = game_data[game_data['game_id'] <= constants['ending_game_id']]
+        game_data = game_data[game_data['game_id'] > self.constants['latest_game_id'].values[0]]
+        game_data = game_data[game_data['game_id'] >= self.constants['starting_game_id']]
+        game_data = game_data[game_data['game_id'] <= self.constants['ending_game_id']]
     
         if not game_data.empty:
-            game_data = game_data[game_data['number_of_players'].between(constants['min_player_count'], constants['max_player_count'])]
+            game_data = game_data[game_data['number_of_players'].between(self.constants['min_player_count'], self.constants['max_player_count'])]
             game_data = game_data[game_data['player_names'].apply(lambda x: set(x).issubset(players))]
     
             game_data = pd.merge(game_data, self.variants, on='variant_name')
@@ -177,7 +177,7 @@ class DataManager:
             return game_data
     
     # Define functions for development coefficients
-    def calculate_development_coefficient(number_of_games, player_rating):
+    def _calculate_development_coefficient(number_of_games, player_rating):
         if number_of_games <= 30:
             return 40
         elif player_rating <= 1600:
@@ -185,7 +185,7 @@ class DataManager:
         else:
             return 15
     
-    def calculate_league_development_coefficient(number_of_games_variant, variant_rating):
+    def _calculate_league_development_coefficient(number_of_games_variant, variant_rating):
         if number_of_games_variant <= 30:
             return 20
         elif variant_rating <= 1600:
@@ -195,6 +195,8 @@ class DataManager:
     
     # Calculate player/variant ratings
     def calculate_ratings():
+        game_data = self._fetch_game_data()
+        
         game_ids = game_data['game_id'].unique()
         game_ids.sort()
     
@@ -239,7 +241,7 @@ class DataManager:
     
             max_score = 1 if current_game['score'].values[0] == current_game['number_of_suits'].values[0] * 5 else 0
     
-            current_game['development_coefficient'] = current_game.apply(lambda row: calculate_development_coefficient(row['number_of_games'], row['player_rating']), axis=1)
+            current_game['development_coefficient'] = current_game.apply(lambda row: self._calculate_development_coefficient(row['number_of_games'], row['player_rating']), axis=1)
             current_game['new_player_rating'] = current_game['player_rating'] + current_game['development_coefficient'] * (max_score - team_expected_results)
     
             # Note: More efficient way of doing the subsequent operations would be using .loc but making sure we are not operating on a view
@@ -255,7 +257,7 @@ class DataManager:
             self.player_data = self.player_data.drop(columns=['new_player_rating'])
     
             for i, variant_name in enumerate(variant_names):
-                league_development_coefficient = calculate_league_development_coefficient(self.variant_data.loc[self.variant_data['variant_name'] == variant_names[i], 'number_of_games_variant'].values[0], variant_ratings[i])
+                league_development_coefficient = self._calculate_league_development_coefficient(self.variant_data.loc[self.variant_data['variant_name'] == variant_names[i], 'number_of_games_variant'].values[0], variant_ratings[i])
                 new_variant_rating = variant_ratings[i] + (league_development_coefficient / difficulty_modifiers[i]) * (team_expected_results - max_score)
     
                 self.variant_data.loc[self.variant_data['variant_name'] == variant_names[i], 'variant_rating'] = new_variant_rating
@@ -279,7 +281,7 @@ class DataManager:
         self.player_game_data = self.player_game_data.sort_values(['player_name', 'game_id'])
         self.player_game_data['player_game_number'] = self.player_game_data.groupby('player_name').cumcount() + 1
     
-    def update_google_sheets(self):
+    def update_data_files(self):
         self.variant_data.to_csv('data/variant_data.csv', index=False)
         self.player_data.to_csv('data/player_data.csv', index=False)
         self.player_game_data.to_csv('data/player_game_data.csv', index=False)
