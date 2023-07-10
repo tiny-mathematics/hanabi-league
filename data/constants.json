@@ -1,6 +1,6 @@
 {
     "player_base_rating": 1400,
-    "variant_base_rating": {
+    "variant_base_ratings": {
         "No Variant": 1000,
         "Rainbow": 1100,
         "Prism": 1100,
