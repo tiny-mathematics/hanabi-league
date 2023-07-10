@@ -285,8 +285,19 @@ class DataManager:
         self.variant_data.to_csv('data/variant_data.csv', index=False)
         self.player_data.to_csv('data/player_data.csv', index=False)
         self.player_game_data.to_csv('data/player_game_data.csv', index=False)
+
+        class NpEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.integer):
+                    return int(obj)
+                if isinstance(obj, np.floating):
+                    return float(obj)
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return super(NpEncoder, self).default(obj)
+        
         with open('data/constants.json', 'w') as file:
-            json.dump(self.constants, file, indent=4)
+            json.dump(self.constants, file, indent=4, cls=NpEncoder)
     
     def reset_data(self):
         self.player_game_data = pd.DataFrame(columns=self.player_game_data.columns)
