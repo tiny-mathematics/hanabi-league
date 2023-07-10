@@ -8,15 +8,15 @@ def fetch_constants():
     return constants
     
 def fetch_player_data():
-    player_data = pd.read_csv('data/player_data.csv')
+    player_data = pd.read_csv('data/player_data.tsv')
     return player_data
 
 def fetch_player_game_data():
-    player_game_data = pd.read_csv('data/player_game_data.csv')
+    player_game_data = pd.read_csv('data/player_game_data.tsv')
     return player_game_data
 
 def fetch_variant_data():
-    variant_data = pd.read_csv('data/variant_data.csv')
+    variant_data = pd.read_csv('data/variant_data.tsv')
     return variant_data
 
 # Update Google Sheets raw data
@@ -45,19 +45,19 @@ def reset_data:
     global player_data, variant_data, player_game_data, constants
 
     player_game_data = pd.DataFrame(columns=player_game_data.columns)
-    player_game_data.to_csv('data/player_game_data.csv', index=False)
+    player_game_data.to_csv('data/player_game_data.tsv', index=False, sep="\t")
 
     player_data['player_rating'] = 1400
     player_data['top_streak'] = 0
     player_data['current_streak'] = 0
     player_data['number_of_games'] = 0
     player_data['number_of_max_scores'] = 0
-    player_data.to_csv('data/player_data.csv', index=False)
+    player_data.to_csv('data/player_data.tsv', index=False, sep="\t")
 
     variant_data['variant_rating'] = variant_data['variant_name'].map(variant_base_ratings)
     variant_data['number_of_games_variant'] = 0
     variant_data['number_of_max_scores_variant'] = 0
-    variant_data.to_csv('data/variant_data.csv', index=False)
+    variant_data.to_csv('data/variant_data.tsv', index=False, sep="\t")
 
     constants['latest_game_id'] = constants['starting_game_id'] - 1
     constants['total_games_played'] = 0
