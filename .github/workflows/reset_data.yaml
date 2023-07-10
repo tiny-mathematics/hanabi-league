@@ -20,7 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run Python script
-      run: python ratings.py
+      run: python reset_data.py
     - name: Commit and push if it changed
       run: | 
         git diff
