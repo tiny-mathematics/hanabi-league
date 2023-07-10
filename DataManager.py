@@ -111,7 +111,7 @@ class DataManager:
         
         variants['number_of_suits'] = variants['variant_name'].apply(self._get_number_of_suits)
         variants = variants[variants['number_of_suits'].between(self.constants['min_suits'], self.constants['max_suits'])]
-        variants['variants'] = variants['variant_name'].apply(find_variants)
+        variants['variants'] = variants['variant_name'].apply(self._find_variants)
         
         return variants
     
