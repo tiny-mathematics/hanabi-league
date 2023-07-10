@@ -1,6 +1,3 @@
-import json
-import pandas as pd
-
 from DataManager import DataManager
 
 def main():
