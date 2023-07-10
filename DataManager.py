@@ -177,7 +177,7 @@ class DataManager:
             return game_data
     
     # Define functions for development coefficients
-    def _calculate_development_coefficient(number_of_games, player_rating):
+    def _calculate_development_coefficient(self, number_of_games, player_rating):
         if number_of_games <= 30:
             return 40
         elif player_rating <= 1600:
@@ -185,7 +185,7 @@ class DataManager:
         else:
             return 15
     
-    def _calculate_league_development_coefficient(number_of_games_variant, variant_rating):
+    def _calculate_league_development_coefficient(self, number_of_games_variant, variant_rating):
         if number_of_games_variant <= 30:
             return 20
         elif variant_rating <= 1600:
@@ -194,7 +194,7 @@ class DataManager:
             return 5
     
     # Calculate player/variant ratings
-    def calculate_ratings():
+    def calculate_ratings(self):
         game_data = self._fetch_game_data()
         
         game_ids = game_data['game_id'].unique()
