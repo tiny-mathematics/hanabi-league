@@ -35,43 +35,43 @@ class DataManager:
         variant_data = pd.read_csv('data/variant_data.csv')
         return variant_data
 
-  # Define function for determining number of suits in a given variant
-  def get_number_of_suits(self, variant_name):
+    # Define function for determining number of suits in a given variant
+    def get_number_of_suits(self, variant_name):
       # Special cases
       if variant_name == 'No Variant':
           return 5
       elif variant_name in ['Ambiguous & Dual-Color', 'Ambiguous Mix', 'Dual-Color Mix']:
           return 6
-  
+    
       # General case
       for num in range(3, 7):
           if f'{num} Suits' in variant_name:
               return num
-  
+    
       # If no number of suits was found
       raise ValueError(f'Cannot determine number of suits for variant "{variant_name}"')
-  
-  # Define function for determining which suits are in a given variant
-  def find_variants(self, variant_name):
+    
+    # Define function for determining which suits are in a given variant
+    def find_variants(self, variant_name):
       suits = sorted(variant_data['variant_name'].unique(), key=len, reverse=True)
-  
+    
       variant_suits = []
-  
+    
       # Check for each suit if it is in the variant name
       for suit in suits:
           # If the suit is in the variant name, add it to the list and remove it from the variant name
           if suit in variant_name:
               variant_suits.append(suit)
               variant_name = variant_name.replace(suit, "")
-  
+    
       if not variant_suits:
           variant_suits.append('No Variant')
-  
+    
       return variant_suits
-  
-  def build_variant_list(self):
+    
+    def build_variant_list(self):
       variants_raw = requests.get('https://hanab.live/api/v1/variants').json()
-  
+    
       # Variants with any of these words in the name will be excluded for the league
       filter_terms = [
           'ambiguous',
@@ -98,23 +98,23 @@ class DataManager:
           'funnels',
           'chimneys'
       ]
-  
+    
       variants_raw = list(variants_raw.items())
-  
+    
       variants = pd.DataFrame(variants_raw, columns=['variant_id', 'variant_name'])
       variants['variant_id'] = variants['variant_id'].astype(int)
       variants = variants.drop('variant_id', axis=1)
-  
+    
       # Filter out the rows with specific terms in 'variant_name'
       pattern = '|'.join(filter_terms)
       variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
-  
+    
       variants['number_of_suits'] = variants['variant_name'].apply(get_number_of_suits)
       variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
       variants['variants'] = variants['variant_name'].apply(find_variants)
-  
+    
       return variants
-
+    
     #  Fetch game data from hanab.live
     def fetch_game_data(self):
         # Fetch game data
@@ -278,30 +278,30 @@ class DataManager:
     
         self.player_game_data = self.player_game_data.sort_values(['player_name', 'game_id'])
         self.player_game_data['player_game_number'] = self.player_game_data.groupby('player_name').cumcount() + 1
-
+    
     def update_google_sheets(self):
         self.variant_data.to_csv('data/variant_data.csv', index=False)
         self.player_data.to_csv('data/player_data.csv', index=False)
         self.player_game_data.to_csv('data/player_game_data.csv', index=False)
         with open('data/constants.json', 'w') as file:
             json.dump(self.constants, file, indent=4)
-
+    
     def reset_data(self):
         self.player_game_data = pd.DataFrame(columns=self.player_game_data.columns)
         self.player_game_data.to_csv('data/player_game_data.csv', index=False)
-
+    
         self.player_data['player_rating'] = 1400
         self.player_data['top_streak'] = 0
         self.player_data['current_streak'] = 0
         self.player_data['number_of_games'] = 0
         self.player_data['number_of_max_scores'] = 0
         self.player_data.to_csv('data/player_data.csv', index=False)
-
+    
         self.variant_data['variant_rating'] = self.variant_data['variant_name'].map(self.constants['variant_base_ratings'])
         self.variant_data['number_of_games_variant'] = 0
         self.variant_data['number_of_max_scores_variant'] = 0
         self.variant_data.to_csv('data/variant_data.csv', index=False)
-
+    
         self.constants['latest_game_id'] = self.constants['starting_game_id'] - 1
         self.constants['total_games_played'] = 0
         self.constants['latest_run'] = None
