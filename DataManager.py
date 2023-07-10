@@ -109,7 +109,7 @@ class DataManager:
         pattern = '|'.join(filter_terms)
         variants = variants[~variants['variant_name'].str.lower().str.contains(pattern)]
         
-        variants['number_of_suits'] = variants['variant_name'].apply(get_number_of_suits)
+        variants['number_of_suits'] = variants['variant_name'].apply(self.get_number_of_suits)
         variants = variants[variants['number_of_suits'].between(constants['min_suits'], constants['max_suits'])]
         variants['variants'] = variants['variant_name'].apply(find_variants)
         
