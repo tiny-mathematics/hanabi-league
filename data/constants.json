@@ -1,6 +1,6 @@
 {
-    'player_base_rating': 1400,
-    'variant_base_rating': {
+    "player_base_rating": 1400,
+    "variant_base_rating": {
         "No Variant": 1000,
         "Rainbow": 1100,
         "Prism": 1100,
@@ -14,22 +14,21 @@
         "Clue Starved": 1600
     },
 
-    'min_player_count': 3,
-    'max_player_count': 5,
-    'min_suits': 5,
-    'max_suits': 6,
+    "min_player_count": 3,
+    "max_player_count": 5,
+    "min_suits": 5,
+    "max_suits": 6,
 
-    // Proportion of mathematically impossible-to-win seeds – likely to be variant specific eventually
-    'u_v': 0.02,
+    "u_v": 0.02,
 
-    'difficulty_modifier_5p': 0.1,
+    "difficulty_modifier_5p": 0.1,
 
-    'starting_game_id': 700000,
-    'ending_game_id': 1000000,
+    "starting_game_id": 700000,
+    "ending_game_id": 1000000,
 
-    'latest_game_id': 952928,
-    'total_games_played': 106,
-    'latest_run': '18:55:12'
+    "latest_game_id": 952928,
+    "total_games_played": 106,
+    "latest_run": '18:55:12'
 }
 
 
