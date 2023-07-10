@@ -35,28 +35,6 @@ class DataManager:
         variant_data = pd.read_csv('data/variant_data.csv')
         return variant_data
 
-    def reset_data(self):
-        self.player_game_data = pd.DataFrame(columns=self.player_game_data.columns)
-        self.player_game_data.to_csv('data/player_game_data.csv', index=False)
-
-        self.player_data['player_rating'] = 1400
-        self.player_data['top_streak'] = 0
-        self.player_data['current_streak'] = 0
-        self.player_data['number_of_games'] = 0
-        self.player_data['number_of_max_scores'] = 0
-        self.player_data.to_csv('data/player_data.csv', index=False)
-
-        self.variant_data['variant_rating'] = self.variant_data['variant_name'].map(self.constants['variant_base_ratings'])
-        self.variant_data['number_of_games_variant'] = 0
-        self.variant_data['number_of_max_scores_variant'] = 0
-        self.variant_data.to_csv('data/variant_data.csv', index=False)
-
-        self.constants['latest_game_id'] = self.constants['starting_game_id'] - 1
-        self.constants['total_games_played'] = 0
-        self.constants['latest_run'] = None
-        with open('data/constants.json', 'w') as file:
-            json.dump(self.constants, file)
-
   # Define function for determining number of suits in a given variant
   def get_number_of_suits(self, variant_name):
       # Special cases
@@ -306,4 +284,26 @@ class DataManager:
         self.player_data.to_csv('data/player_data.csv', index=False)
         self.player_game_data.to_csv('data/player_game_data.csv', index=False)
         with open('data/constants.json', 'w') as file:
-            json.dump(self.constants, file)
+            json.dump(self.constants, file, indent=4)
+
+    def reset_data(self):
+        self.player_game_data = pd.DataFrame(columns=self.player_game_data.columns)
+        self.player_game_data.to_csv('data/player_game_data.csv', index=False)
+
+        self.player_data['player_rating'] = 1400
+        self.player_data['top_streak'] = 0
+        self.player_data['current_streak'] = 0
+        self.player_data['number_of_games'] = 0
+        self.player_data['number_of_max_scores'] = 0
+        self.player_data.to_csv('data/player_data.csv', index=False)
+
+        self.variant_data['variant_rating'] = self.variant_data['variant_name'].map(self.constants['variant_base_ratings'])
+        self.variant_data['number_of_games_variant'] = 0
+        self.variant_data['number_of_max_scores_variant'] = 0
+        self.variant_data.to_csv('data/variant_data.csv', index=False)
+
+        self.constants['latest_game_id'] = self.constants['starting_game_id'] - 1
+        self.constants['total_games_played'] = 0
+        self.constants['latest_run'] = None
+        with open('data/constants.json', 'w') as file:
+            json.dump(self.constants, file, indent=4)
