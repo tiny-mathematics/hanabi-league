@@ -41,7 +41,7 @@ def update_google_sheets():
     data_list = [metadata.columns.values.tolist()] + metadata.values.tolist()
     gsheet.worksheet(metadata_sheet_name).append_rows(data_list)
 
-def reset_data:
+def reset_data():
     global player_data, variant_data, player_game_data, constants
 
     player_game_data = pd.DataFrame(columns=player_game_data.columns)
